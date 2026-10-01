@@ -25,3 +25,5 @@ dvc metrics show
 
 Hyperparameters are centralized in `params.yaml`. The default DVC remote is a
 Google Drive folder; access must be granted by the repository owner.
+
+Run `dvc status` at any time to check whether pipeline outputs are current.
