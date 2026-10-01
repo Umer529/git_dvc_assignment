@@ -147,6 +147,7 @@ rename labels.py =&gt; src/labels.py (100%)</div>
 
       <h2>Parts B and C checks</h2>
       <ul><li>Environment: Python 3.12, TensorFlow 2.21, DVC 3.67.1.</li><li>Installed Google Drive extension: dvc-gdrive 3.0.1.</li><li><code>dvc init</code> committed <code>.dvc/config</code>, <code>.dvc/.gitignore</code>, and <code>.dvcignore</code>.</li><li>Credential and token patterns are excluded; OAuth client values belong in <code>.dvc/config.local</code>.</li></ul>
+      <p><b>C5 evidence:</b> branch <code>dvc-add-demo</code>, commit <code>4179f65</code>, preserves <code>dvc add data/raw data/processed models</code> with all three pointer files; its final push reported one remaining manifest uploaded.</p>
       <div class="terminal">PS&gt; dvc status
 Data and pipelines are up to date.
 PS&gt; dvc repro
