@@ -11,22 +11,12 @@ import numpy as np
 import tensorflow as tf
 from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix, f1_score
 
+from labels import CLASS_NAMES
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
 MODELS_DIR = PROJECT_ROOT / "models"
-CLASS_NAMES = [
-    "T-shirt/top",
-    "Trouser",
-    "Pullover",
-    "Dress",
-    "Coat",
-    "Sandal",
-    "Shirt",
-    "Sneaker",
-    "Bag",
-    "Ankle boot",
-]
 
 
 def main() -> None:
