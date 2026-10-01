@@ -14,9 +14,6 @@ stages:
     params:
       - preprocess.validation_size
       - preprocess.seed
-    outs:
-      - data/processed
-
   train:
     cmd: python src/train.py
     deps:
