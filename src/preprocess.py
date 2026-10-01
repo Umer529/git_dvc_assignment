@@ -24,7 +24,7 @@ def main() -> None:
     test_images = np.load(RAW_DIR / "test_images.npy")
     test_labels = np.load(RAW_DIR / "test_labels.npy")
 
-    # float32 keeps the processed data and training memory footprint compact.
+    # Scale uint8 pixels to [0, 1]; float32 keeps storage and training compact.
     train_images = train_images.astype(np.float32) / 255.0
     test_images = test_images.astype(np.float32) / 255.0
     x_train, x_val, y_train, y_val = train_test_split(
