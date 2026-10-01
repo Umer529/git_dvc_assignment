@@ -24,13 +24,9 @@ def main() -> None:
     test_images = np.load(RAW_DIR / "test_images.npy")
     test_labels = np.load(RAW_DIR / "test_labels.npy")
 
-    # Main approach: normalize into float32 and round to stable precision.
-    train_images = np.round(
-        np.divide(train_images, 255.0, dtype=np.float32), decimals=6
-    )
-    test_images = np.round(
-        np.divide(test_images, 255.0, dtype=np.float32), decimals=6
-    )
+    # Merged approach: normalize at high precision, then store compact float32.
+    train_images = (train_images.astype(np.float64) / 255.0).astype(np.float32)
+    test_images = (test_images.astype(np.float64) / 255.0).astype(np.float32)
     x_train, x_val, y_train, y_val = train_test_split(
         train_images,
         train_labels,
