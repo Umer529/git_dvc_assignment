@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Assignment 3 — Git, DVC & TensorFlow</title>
+<style>
+  @page { size: A4; margin: 9mm; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; color: #172033; font-size: 9.2px; line-height: 1.28; }
+  .page { page-break-after: always; min-height: 277mm; position: relative; padding-bottom: 8mm; }
+  .page:last-child { page-break-after: auto; }
+  h1 { margin: 0 0 2mm; font-size: 22px; color: #173f73; }
+  h2 { margin: 3mm 0 1.2mm; font-size: 14px; color: #145a78; border-bottom: 1px solid #b8d1dd; padding-bottom: 1mm; }
+  h3 { margin: 2mm 0 1mm; font-size: 11px; color: #354a66; }
+  p { margin: 1mm 0; }
+  ul, ol { margin: 1mm 0 1mm 5mm; padding-left: 3mm; }
+  li { margin: .5mm 0; }
+  .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 1mm 5mm; background: #edf5f8; padding: 2.5mm; border-radius: 2mm; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5mm; }
+  .card { border: 1px solid #c9d7df; border-radius: 2mm; padding: 2mm; background: #fbfdfe; }
+  .terminal { background: #101820; color: #d9e7ef; border-radius: 2mm; padding: 2mm; margin: 1mm 0; font: 7.2px/1.23 Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .code { background: #f3f5f7; border-left: 2px solid #2f7895; padding: 1.5mm; font: 6.7px/1.18 Consolas, monospace; white-space: pre-wrap; }
+  table { width: 100%; border-collapse: collapse; margin: 1.5mm 0; }
+  th, td { border: 1px solid #c8d4da; padding: 1.2mm; text-align: left; }
+  th { background: #e7f0f4; }
+  .good { color: #087443; font-weight: 700; }
+  .warn { color: #9b5a00; font-weight: 700; }
+  .footer { position: absolute; bottom: 0; left: 0; right: 0; border-top: 1px solid #d5dee3; padding-top: 1mm; color: #61717d; display: flex; justify-content: space-between; }
+  .small { font-size: 7.5px; }
+</style>
+</head>
+<body>
+
+<section class="page">
+  <h1>End-to-End ML Versioning with Git, DVC & TensorFlow</h1>
+  <div class="meta">
+    <div><b>Student:</b> Umer</div><div><b>Assignment:</b> 3 (50 marks)</div>
+    <div><b>Repository:</b> github.com/Umer529/git_dvc_assignment</div><div><b>Dataset:</b> Fashion-MNIST</div>
+    <div><b>Model:</b> Fully connected ANN (not CNN)</div><div><b>Final tag:</b> v2</div>
+  </div>
+
+  <h2>Implementation summary</h2>
+  <div class="grid2">
+    <div class="card"><h3>Four independent stages</h3>
+      <ol><li><b>prepare.py</b> downloads and saves raw NumPy arrays.</li><li><b>preprocess.py</b> normalizes and stratifies train/validation data.</li><li><b>train.py</b> builds Flatten → Dense/ReLU → Dropout → Dense/Softmax.</li><li><b>evaluate.py</b> writes JSON metrics and a confusion matrix.</li></ol>
+    </div>
+    <div class="card"><h3>Reproducibility</h3>
+      <ul><li>All hyperparameters come from <b>params.yaml</b>.</li><li>All four stages are wired through <b>dvc.yaml</b>.</li><li>Raw data, processed data, model, history and plot are DVC cached.</li><li><b>dvc.lock</b> records every dependency/output hash.</li></ul>
+    </div>
+  </div>
+
+  <h2>Part A — Git history and log variants</h2>
+  <div class="terminal">PS&gt; git log --oneline --graph --all
+* 2b51ccd (main) fix: restore pipeline output tracking after conflict demo
+*   40120aa merge: reconcile normalization and DVC data conflict
+|\
+| * 19ffcc5 (teammate-sim) experiment: teammate normalization and processed data
+* | 457411b experiment: round main processed representation
+|/
+* 9e3fac9 (tag: v2, dev) experiment: increase hidden units for v2
+* 5c2368d (tag: v1) feat: record reproducible v1 pipeline outputs
+* f3f9a81 feat: define reproducible four-stage DVC pipeline
+* 35eb3d9 chore: initialize DVC metadata
+* 7aabd1b docs: note DVC status workflow
+* b52b4a1 refactor: reorganize labels with git mv and remove obsolete notes
+* b770404 docs: clarify preprocessing normalization
+* dc2d965 feat: add metrics and confusion matrix evaluation
+* 7f1db0e feat: add configurable ANN training stage
+* e58a8f5 feat: add deterministic preprocessing stage
+* 5f8c7f9 config: centralize pipeline hyperparameters
+* 6284b16 feat: add Fashion-MNIST preparation stage
+* b008809 docs: add project setup and dependency guide
+* 2d50b09 fix: clarify project purpose in README
+* 4a2a12c First Commit</div>
+  <table><tr><th>Command</th><th>What it reveals beyond plain <code>git log</code></th></tr>
+    <tr><td><code>git log --oneline --graph --all</code></td><td>Compact topology of every branch, merge, and tag.</td></tr>
+    <tr><td><code>git log --stat -3</code></td><td>Files changed and insertion/deletion totals for the latest three commits.</td></tr>
+    <tr><td><code>git log -p -1</code></td><td>The exact patch introduced by the latest commit.</td></tr>
+    <tr><td><code>git log main..dev</code></td><td>Commits reachable only from dev; after the final merge it is empty, proving main contains dev.</td></tr>
+  </table>
+  <div class="footer"><span>Assignment 3 report</span><span>1 / 4</span></div>
+</section>
+
+<section class="page">
+  <h1>Git command demonstrations</h1>
+  <div class="grid2">
+    <div>
+      <h2>A4 — Diff variants</h2>
+      <div class="terminal">PS&gt; git diff
+- # float32 keeps storage compact.
++ # Scale uint8 pixels to [0, 1] ...
+
+PS&gt; git add README.md
+PS&gt; git diff --staged
++ Run `dvc status` to check outputs.
+
+PS&gt; git diff main..dev --stat
+9 files changed, 284 insertions(+), 1 deletion(-)
+PS&gt; git diff main...dev --stat
+9 files changed, 284 insertions(+), 1 deletion(-)</div>
+      <p><b>Two-dot</b> compares the two branch tips. <b>Three-dot</b> compares dev with the branches’ merge base, isolating work introduced on dev. They matched here because main was an ancestor after rebase.</p>
+
+      <h2>A5 — Stash scenario</h2>
+      <div class="terminal">PS&gt; git stash push -m "preprocess normalization note"
+Saved working directory ...
+PS&gt; git switch main; git switch dev
+PS&gt; git stash list
+stash@{0}: On dev: preprocess normalization note
+PS&gt; git stash pop
+Dropped refs/stash@{0}; src/preprocess.py restored</div>
+
+      <h2>A7 — Reset scenario</h2>
+      <div class="terminal">PS&gt; git reset --soft HEAD~1
+M  scratch_reset.txt      # still staged
+PS&gt; git commit -m "restore second reset demo commit"
+PS&gt; git reset --hard HEAD~1
+HEAD is now at a9bb0a0   # commit and change discarded</div>
+      <p>Soft reset moved HEAD but retained the index. Hard reset moved HEAD and restored both index and working tree.</p>
+    </div>
+
+    <div>
+      <h2>A6 — Hotfix and rebase</h2>
+      <div class="terminal">BEFORE
+* 2d50b09 (main, hotfix-readme) README fix
+| * b4dc578 (dev) evaluation stage
+| * ... six incremental dev commits
+|/
+* 4a2a12c First Commit
+
+PS&gt; git switch dev; git rebase main
+CONFLICT (content): Merge conflict in README.md
+Successfully rebased and updated refs/heads/dev.
+
+AFTER
+* dc2d965 (dev) evaluation stage
+* ... rebased dev commits
+* 2d50b09 (main) README fix
+* 4a2a12c First Commit</div>
+      <p>The README conflict was manually reconciled; dev then sat linearly on top of the merged hotfix.</p>
+
+      <h2>A8 — Tracked reorganization</h2>
+      <div class="terminal">PS&gt; git mv labels.py src\labels.py
+PS&gt; git rm obsolete_notes.txt
+PS&gt; git show --stat --find-renames
+delete mode 100644 obsolete_notes.txt
+rename labels.py =&gt; src/labels.py (100%)</div>
+
+      <h2>Parts B and C checks</h2>
+      <ul><li>Environment: Python 3.12, TensorFlow 2.21, DVC 3.67.1.</li><li>Installed Google Drive extension: dvc-gdrive 3.0.1.</li><li><code>dvc init</code> committed <code>.dvc/config</code>, <code>.dvc/.gitignore</code>, and <code>.dvcignore</code>.</li><li>Credential and token patterns are excluded; OAuth client values belong in <code>.dvc/config.local</code>.</li></ul>
+      <div class="terminal">PS&gt; dvc status
+Data and pipelines are up to date.
+PS&gt; dvc repro
+Stage 'prepare' didn't change, skipping
+Stage 'preprocess' didn't change, skipping
+Stage 'train' didn't change, skipping
+Stage 'evaluate' didn't change, skipping</div>
+    </div>
+  </div>
+  <div class="footer"><span>Assignment 3 report</span><span>2 / 4</span></div>
+</section>
+
+<section class="page">
+  <h1>DVC pipeline, parameters and experiment results</h1>
+  <div class="grid2">
+    <div><h2>Final params.yaml</h2><div class="code">preprocess:
+  validation_size: 0.2
+  seed: 42
+train:
+  dense_units: 384
+  dropout_rate: 0.2
+  learning_rate: 0.001
+  epochs: 10
+  batch_size: 128
+  seed: 42</div>
+    <h2>D3 — First complete reproduction</h2>
+    <div class="terminal">Running stage 'prepare':
+Saved raw data; train=(60000, 28, 28), test=(10000, 28, 28)
+Generating lock file 'dvc.lock'
+Running stage 'preprocess':
+train=(48000, 28, 28), val=(12000, 28, 28)
+Running stage 'train':
+Epoch 10/10 ... val_accuracy: 0.8888
+Running stage 'evaluate':
+test_accuracy: 0.87380; test_loss: 0.34817</div>
+    <h2>D4 — Parameter-aware rerun</h2>
+    <div class="terminal">Changed train.dense_units: 256 → 384
+Stage 'prepare' didn't change, skipping
+Stage 'preprocess' didn't change, skipping
+Running stage 'train' ...
+Running stage 'evaluate' ...
+test_accuracy: 0.87840; test_loss: 0.33870</div>
+    <p>Only train depended on the changed key; evaluate then reran because the model hash changed. Upstream stages remained cached.</p>
+    </div>
+    <div><h2>Final dvc.yaml</h2><div class="code">stages:
+  prepare:
+    cmd: python src/prepare.py
+    deps: [src/prepare.py]
+    outs: [data/raw]
+  preprocess:
+    cmd: python src/preprocess.py
+    deps: [src/preprocess.py, data/raw]
+    params:
+      - preprocess.validation_size
+      - preprocess.seed
+    outs: [data/processed]
+  train:
+    cmd: python src/train.py
+    deps: [src/train.py, data/processed]
+    params:
+      - train.dense_units
+      - train.dropout_rate
+      - train.learning_rate
+      - train.epochs
+      - train.batch_size
+      - train.seed
+    outs:
+      - models/model.h5
+      - models/history.csv
+  evaluate:
+    cmd: python src/evaluate.py
+    deps:
+      - src/evaluate.py
+      - src/labels.py
+      - models/model.h5
+      - data/processed/x_test.npy
+      - data/processed/y_test.npy
+    outs: [models/confusion_matrix.png]
+    metrics:
+      - metrics.json:
+          cache: false</div></div>
+  </div>
+  <h2>v1 versus v2 metrics</h2>
+  <table><tr><th>Version</th><th>Dense units</th><th>Test accuracy</th><th>Test loss</th><th>Macro F1</th></tr>
+    <tr><td>v1</td><td>256</td><td>0.87380</td><td>0.34817</td><td>0.87387</td></tr>
+    <tr><td><b>v2</b></td><td>384</td><td class="good">0.87840</td><td class="good">0.33870</td><td class="good">0.87831</td></tr>
+  </table>
+  <p class="good">Result: 87.84% test accuracy, exceeding the required 85% target.</p>
+  <div class="footer"><span>Assignment 3 report</span><span>3 / 4</span></div>
+</section>
+
+<section class="page">
+  <h1>Simulated collaboration and conflict resolution</h1>
+  <h2>E1–E3 — Independent code and data versions</h2>
+  <div class="grid2"><div class="card"><b>teammate-sim</b><br>float64 normalization<br>DVC hash: <code>9e288ef9...dir</code><br>439,110,768 bytes</div><div class="card"><b>main</b><br>rounded float32 normalization<br>DVC hash: <code>557fc53f...dir</code><br>219,590,768 bytes</div></div>
+  <div class="terminal">PS&gt; git merge teammate-sim
+Auto-merging data/processed.dvc
+CONFLICT (content): Merge conflict in data/processed.dvc
+Auto-merging src/preprocess.py
+CONFLICT (content): Merge conflict in src/preprocess.py
+Automatic merge failed; fix conflicts and then commit the result.
+
+UU data/processed.dvc
+UU src/preprocess.py
+
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+- md5: 557fc53f99bd6aa1b1f1dff9314a99bd.dir
+=======
+- md5: 9e288ef9f934e89bbef9c66fc299cf22.dir
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; teammate-sim</div>
+
+  <h2>E4–E5 — Resolution</h2>
+  <ol><li>Reconciled both implementations: normalize at float64 precision, then store compact float32 arrays.</li><li>Regenerated <code>data/processed</code> instead of arbitrarily choosing a stale pointer.</li><li>Ran <code>dvc add</code> and <code>dvc checkout</code> to synchronize the resolved DVC object.</li><li>Committed merge <code>40120aa</code>, restored pipeline-native output tracking, and reran the pipeline.</li></ol>
+  <div class="terminal">PS&gt; dvc repro
+Stage 'prepare' didn't change, skipping
+Running stage 'preprocess' ...
+Stage 'train' didn't change, skipping
+Running stage 'evaluate' ... test_accuracy: 0.878400
+
+PS&gt; dvc status
+Data and pipelines are up to date.
+PS&gt; dvc repro
+Stage 'prepare' didn't change, skipping
+Stage 'preprocess' didn't change, skipping
+Stage 'train' didn't change, skipping
+Stage 'evaluate' didn't change, skipping</div>
+
+  <h2>Submission verification</h2>
+  <table><tr><th>Deliverable</th><th>Evidence</th><th>Status</th></tr>
+    <tr><td>GitHub repository</td><td>Full unsquashed history, branches, merge commit, v1/v2 tags</td><td class="good">Ready locally</td></tr>
+    <tr><td>DVC artifacts</td><td>Raw/processed/model/history/plot cached; clean dvc status</td><td class="good">Ready locally</td></tr>
+    <tr><td>Google Drive remote</td><td>Requires folder ID and one-time OAuth consent; secrets remain local</td><td class="warn">Authorization pending</td></tr>
+    <tr><td>PDF report</td><td>Git/DVC outputs, configs, metrics, conflict and resolution</td><td class="good">Generated</td></tr>
+  </table>
+  <p class="small"><b>Security note:</b> Google OAuth client ID/secret and cached tokens must never be committed. Configure them with <code>dvc remote modify --local</code>; only the remote folder URL is tracked.</p>
+  <div class="footer"><span>Assignment 3 report</span><span>4 / 4</span></div>
+</section>
+
+</body>
+</html>
