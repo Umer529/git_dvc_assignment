@@ -278,10 +278,10 @@ Stage 'evaluate' didn't change, skipping</div>
   <table><tr><th>Deliverable</th><th>Evidence</th><th>Status</th></tr>
     <tr><td>GitHub repository</td><td>Full unsquashed history, branches, merge commit, v1/v2 tags</td><td class="good">Ready locally</td></tr>
     <tr><td>DVC artifacts</td><td>Raw/processed/model/history/plot cached; clean dvc status</td><td class="good">Ready locally</td></tr>
-    <tr><td>Google Drive remote</td><td>Requires folder ID and one-time OAuth consent; secrets remain local</td><td class="warn">Authorization pending</td></tr>
+    <tr><td>Google Drive remote</td><td><code>gdrive_storage</code>; OAuth succeeded; <code>dvc push -j 1</code> reported 9 files pushed</td><td class="good">Uploaded</td></tr>
     <tr><td>PDF report</td><td>Git/DVC outputs, configs, metrics, conflict and resolution</td><td class="good">Generated</td></tr>
   </table>
-  <p class="small"><b>Security note:</b> Google OAuth client ID/secret and cached tokens must never be committed. Configure them with <code>dvc remote modify --local</code>; only the remote folder URL is tracked.</p>
+  <p class="small"><b>Remote:</b> <a href="https://drive.google.com/drive/u/1/folders/1fRC1WCVIeiqdppecCmE4m-o8b-MXgJnH">Google Drive DVC folder</a>. <b>Security:</b> OAuth values remain only in ignored <code>.dvc/config.local</code>; only the folder URL is tracked.</p>
   <div class="footer"><span>Assignment 3 report</span><span>4 / 4</span></div>
 </section>
 
